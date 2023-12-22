@@ -1,3 +1,5 @@
+import json
+
 class Note:
     def __init__(self, title, content, category):
         self.title = title
@@ -32,9 +34,32 @@ class Notebook:
                 return
         print(f"Note '{title}' not found.")
 
+    def save_notes_to_file(self, filename='notes.json'):
+        try:
+            with open(filename, 'r') as file:
+                existing_notes_data = json.load(file)
+        except FileNotFoundError:
+            existing_notes_data = []
+
+        with open(filename, 'w') as file:
+            notes_data = existing_notes_data + [
+                {'title': note.title, 'content': note.content, 'category': note.category}
+                for note in self.notes]
+            json.dump(notes_data, file)
+
+    def load_notes_from_file(self, filename='notes.json'):
+        try:
+            with open(filename, 'r') as file:
+                notes_data = json.load(file)
+                self.notes = [Note(note['title'], note['content'], note['category']) for note in notes_data]
+        except FileNotFoundError:
+            # Handle the case where the file doesn't exist yet
+            pass
+
 
 def main():
     my_notebook = Notebook()
+    my_notebook.load_notes_from_file()
 
     while True:
         print("\nOptions:")
@@ -66,13 +91,17 @@ def main():
             title = input("Enter the title of the note to delete: ")
             my_notebook.delete_note(title)
 
+
         elif choice == '5':
+            my_notebook.save_notes_to_file()
             print("Exiting from the notes, Goodbye!")
             break
 
         else:
             print("Invalid choice. Please enter a number from 1 to 5.")
+            break
 
 
 if __name__ == "__main__":
     main()
+
