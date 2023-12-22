@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+import os
 
 class Note:
     def __init__(self, title, content, category):
@@ -31,21 +33,31 @@ class Notebook:
             if note.title == title:
                 self.notes.remove(note)
                 print(f"Note '{title}' deleted successfully.")
+
+                # Delete the corresponding JSON file
+                filename = f'notes_{note.title}.json'
+                self.delete_file(filename)
+
                 return
         print(f"Note '{title}' not found.")
 
-    def save_notes_to_file(self, filename='notes.json'):
+    def delete_file(self, filename):
         try:
-            with open(filename, 'r') as file:
-                existing_notes_data = json.load(file)
+            os.remove(filename)
+            print(f"File '{filename}' deleted successfully.")
         except FileNotFoundError:
-            existing_notes_data = []
+            print(f"File '{filename}' not found.")
+        except Exception as e:
+            print(f"Error deleting file '{filename}': {e}")
 
+    def save_notes_to_file(self):
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f'notes_{timestamp}.json'
         with open(filename, 'w') as file:
-            notes_data = existing_notes_data + [
-                {'title': note.title, 'content': note.content, 'category': note.category}
-                for note in self.notes]
-            json.dump(notes_data, file)
+            notes_data = [{'title': note.title, 'content': note.content, 'category': note.category}
+                          for note in self.notes]
+            json.dump(notes_data, file, indent=2)
+        print(f'Notes saved to file: {filename}')
 
     def load_notes_from_file(self, filename='notes.json'):
         try:
@@ -90,6 +102,8 @@ def main():
         elif choice == '4':
             title = input("Enter the title of the note to delete: ")
             my_notebook.delete_note(title)
+            my_notebook.save_notes_to_file()
+
 
 
         elif choice == '5':
@@ -99,7 +113,7 @@ def main():
 
         else:
             print("Invalid choice. Please enter a number from 1 to 5.")
-            break
+            continue
 
 
 if __name__ == "__main__":
